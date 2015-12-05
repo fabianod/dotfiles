@@ -318,7 +318,7 @@ def uploadFile(pathToFile):
         try:
             response = urllib2.urlopen(request);
         except urllib2.HTTPError, err:
-            print("ERROR UPLOADING " + fileName + " CODE: " + str(err.code) + " LOG: " + str(request.read()));
+            print("ERROR UPLOADING " + fileName + " CODE: " + str(err.code));
             return;
 
         #Unsuccessful upload for whatever reason
