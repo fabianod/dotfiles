@@ -25,6 +25,10 @@ userGUID = "";
 userToken = "";
 
 
+####################################
+####    HANDLES LOGGING IN      ####
+####################################
+
 def login(username, password):
 
     password = config.COMMVAULT_BASE; #password.encode('base64');
@@ -72,11 +76,16 @@ def login(username, password):
     print("Error logging in: " + str(response));
     return False;
 
+
+####################################
+####     GENERATES HEADERS      ####
+####################################
+
 def generateHeaders(pathToFile):
 
     fileSize = os.path.getsize(pathToFile);
     fileName = os.path.basename(pathToFile);
-    lastModified = int(os.path.getmtime(pathToFile));
+    lastModified = long(os.path.getmtime(pathToFile));
 
     path = os.path.split(pathToFile)[0];
     cloudPath = "\Drive" + path.replace("/", "\\"); 
@@ -95,6 +104,12 @@ def generateHeaders(pathToFile):
 
     return headers, fileName, cloudPath;
 
+
+
+####################################
+####     FOR CHUNK UPLOADING    ####
+####################################
+
 def handleConflict(pathToFile):
 
     request = urllib2.Request(uploadChunkedFileInitial);
@@ -109,7 +124,7 @@ def handleConflict(pathToFile):
             response = json.loads(response.read());
             response = response['DM2ContentIndexing_UploadFileResp'];
             requestID = response['@requestId'];
-            chunkOffset = int(response['@chunkOffset']);
+            chunkOffset = long(response['@chunkOffset']);
             print("Found duplicate for " + fileName + "\tChunk: " + str(chunkOffset) + str(response));
             return requestID, chunkOffset;
         else:
@@ -120,7 +135,7 @@ def handleConflict(pathToFile):
             response = json.loads(err.read());
             response = response['DM2ContentIndexing_UploadFileResp'];
             requestID = response['@requestId'];
-            chunkOffset = int(response['@chunkOffset']);
+            chunkOffset = long(response['@chunkOffset']);
             print("Found duplicate for " + fileName + "\tChunk: " + str(chunkOffset) + "\t" + str(response));
             return requestID, chunkOffset;
         else:
@@ -143,17 +158,26 @@ def uploadFileInChunks(pathToFile):
     if chunkOffset != 0:
         fileToUpload.seek(chunkOffset);
 
-    while(chunkOffset + (4 * 1000 * 1000) <= fileSize):
+    while(chunkOffset + (4 * 1000 * 1000) < fileSize):
+        print("Uploading new chunk");
         chunk = fileToUpload.read(4 * 1000 * 1000);
         url = uploadChunkedFileRequestIdURL + str(requestID);
-        requestIDOld, chunk = beginChunkUpload(pathToFile, chunk, False, url);
+        requestIDOld, chunkResponse = beginChunkUpload(pathToFile, chunk, False, url);
 
-        if chunk == -1:
+        if chunkResponse == -1:
             print("Successfully finished uploading " + os.path.basename(pathToFile));
             return;
-        chunkOffset += 4 * 1000 * 1000;
+        #chunkOffset += 4 * 1000 * 1000;
 
-    chunk = fileToUpload.read();
+    remainder = fileSize - chunkOffset;
+    print("HERE: " + str(fileSize) + "\t" + str(chunkOffset));
+    chunk = fileToUpload.read(remainder);
+
+    if chunk:
+        print("CHUNK IS GOOD");
+    else:
+        print("CHUNK IS BAD");
+
     url = uploadChunkedFileRequestIdURL + str(requestID);
     beginChunkUpload(pathToFile, chunk, True, url);
     print("Successfully finished uploading " + os.path.basename(pathToFile));
@@ -171,7 +195,8 @@ def beginChunkUpload(pathToFile, chunk, isLastChunk, url):
     del headers["FileName"];
 
     if isLastChunk:
-        headers["FileEOF"] = "1";
+        print("GOT TO LAST CHUNK");
+        #headers["FileEOF"] = "1";
     else:
         headers["FileEOF"] = "0";
 
@@ -186,18 +211,11 @@ def beginChunkUpload(pathToFile, chunk, isLastChunk, url):
             print("IN CHUNK BAD REQUEST FOR " + fileName + "\t" + err.read());
             return 0, 0;
 
-        #This upload has already begun, let's just force restart it
         elif err.code == 409:
-            response = json.loads(err.read());
-            response = response['DM2ContentIndexing_UploadFileResp'];
-            chunkOffSet = int(response['@chunkOffset']);
-            requestID = response['@requestId'];
-
-            print(response);
             print("DUPLICATE FOUND: " + requestID + "\t" + str(chunkOffSet) + " RETURNED");
             return requestID, chunkOffSet;
         else:
-            print("ERROR: " + err.read());
+            print("ERROR: " + str(err.code) + " OUTPUT: " + err.read());
             raise;
 
     if response.code != 200:
@@ -210,8 +228,8 @@ def beginChunkUpload(pathToFile, chunk, isLastChunk, url):
     response = response['DM2ContentIndexing_UploadFileResp'];
 
     if "@errorCode" in response:
-        if int(response['@errorCode']) == 200:
-            chunkOffSet = int(response['@chunkOffset']);
+        if long(response['@errorCode']) == 200:
+            chunkOffSet = long(response['@chunkOffset']);
             requestID = ""; #response['@requestId'];
             print("Successfully uploaded chunk of " + fileName + "\tpath: " + pathToFile + "\tto cloud location: " + cloudPath + str(response));
             return requestID, chunkOffSet;
@@ -234,13 +252,15 @@ def uploadFile(pathToFile):
 
     fileSize = os.path.getsize(pathToFile);
 
-    if fileSize > maxSingleSize:
+    if fileSize > maxSingleSize and 1 == 2:
         uploadFileInChunks(pathToFile);
 
     else:
         request = urllib2.Request(uploadFullFile);
 
         headers, fileName, cloudPath = generateHeaders(pathToFile);
+
+        print("Beginning to upload " + fileName + " to " + cloudPath);
 
         request.add_data(open(pathToFile, 'rb').read());
         request.headers = headers;
@@ -257,7 +277,7 @@ def uploadFile(pathToFile):
             response = response['DM2ContentIndexing_UploadFileResp'];
 
         if "@errorCode" in response:
-            if int(response['@errorCode']) == 200:
+            if long(response['@errorCode']) == 200:
                 print("Successfully uploaded " + fileName + "\tpath: " + pathToFile ); #+ "\tto cloud location: " + cloudPath);
                 return;
 
