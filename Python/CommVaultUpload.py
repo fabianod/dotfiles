@@ -1,11 +1,11 @@
 import urllib;
+import getpass;
 import base64;
 import os;
 import urllib2;
 import sys;
 import json;
 
-import config;
 
 ######################################################################################
 # Written by Ryan D'souza
@@ -45,7 +45,7 @@ userToken = "";
 
 def login(username, password):
 
-    password = config.COMMVAULT_BASE; #password.encode('base64');
+    password = password.encode('base64');
 
     loginXML = "<DM2ContentIndexing_CheckCredentialReq mode=\"webconsole\" flags=\"2\" deviceId=\"68FAB736-80F3-4F39-B1FA-AC35A3C7BAB3\" username=\"{0}\" password=\"{1}\" />";
 
@@ -314,7 +314,11 @@ def uploadFile(pathToFile):
         request.add_data(open(pathToFile, 'rb').read());
         request.headers = headers;
 
-        response = urllib2.urlopen(request);
+        try:
+            response = urllib2.urlopen(request);
+        except urllib2.HTTPError, err:
+            print("ERROR UPLOADING " + fileName + " CODE: " + str(err.code) + " LOG: " + str(request.read()));
+            return;
 
         #Unsuccessful upload for whatever reason
         if response.code != 200:
@@ -334,24 +338,46 @@ def uploadFile(pathToFile):
         print("ERROR UPLOADING " + pathToFile + " MESSAGE: " + str(response));
 
 
-currentDirectory = str(os.getcwd()) + "/";
 
-#KEEP
+##############################################
+####     MAIN METHOD - THE GOOD STUFF    ####
+#############################################
 
-if login("dsouzarc", ""):
+password = getpass.getpass("Enter your password:\n");
 
-    fileName = "";
+#Login
+if login("dsouzarc", password):
 
+    currentDirectory = str(os.getcwd()) + "/";
+    fileName = None;
+
+    #No input - prompt the user for file names or directories to upload
     if len(sys.argv) == 1:
         fileName = raw_input("Enter file name to upload or '/' to upload all files in this directory and subdirectories:\n");
+
+    #Given a file as a parameter at run time
     elif len(sys.argv) == 2:
         fileName = sys.argv[1];
 
-    uploadFile(fileName);
+    #Given a list of files at run time
+    else:
+        for fileName in sys.argv[1:]:
+            fileLocation = currentDirectory = fileName;
+            uploadFile(fileLocation);
 
+    #Upload all files in this directory and its subdirectories --> user entered '/' or '.'
+    if fileName != None and (fileName == "/" or fileName == "."):
+        for root, subFolders, files in os.walk(os.getcwd()):
+            for folder in subFolders:
+                for file in files:
+                    if file != "CommVaultUpload.py":
+                        filePath = os.path.join(root, file);
+                        uploadFile(filePath);
 
+    #Just one file entered
+    elif fileName != None:
+        uploadFile(fileName);
 
 else:
     print("Unsuccessful login");
     sys.exit(0);
-
