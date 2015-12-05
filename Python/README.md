@@ -2,6 +2,31 @@
 
 ##Various Python files I run from the commandline to help me with miscellaneous tasks
 
+####[CommVault Uploader](https://github.com/dsouzarc/dotfiles/blob/master/Python/CommVaultUpload.py)
+
+Super lightweight and quick way to upload files of any size to the cloud. It can also add all files in a directory and the directory's subdiretories. It's quicker than logging into Dropbox/Box/Copy/Mega/Gmail etc. to save files to the cloud. Plus, it adds files from subdirectories as well. 
+
+The best part is that the app is only one file and runs on standard Python - there's no need to install 3rd party libraries. The only thing that's needed is your password.
+
+Downloading it is as simple as
+
+	curl -L tiny.cc/dsouzarcUploader > CommVaultUpload.py
+	
+And using it is as basic as
+
+	python CommVaultUpload.py fileOne.mp3
+	
+or 
+
+	python CommVaultUpload.py fileOne.docx fileTwo.docx movie2.docx
+
+or 
+
+	python CommVaultUpload.py /
+	
+To upload all files in that directory and its subdirectories
+
+
 ####[Credential Manager](https://github.com/dsouzarc/dotfiles/blob/master/Python/CredentialManager.py)
 
 Super lightweight, secure (base64encode), quick, and easy to use credential manager to save and retrieve passwords. Stores the encrypted passwords in a secret json file in a secret folder in the home directory, enabling the script to be run from anywhere on the computer.
@@ -10,7 +35,7 @@ There's only one file needed (quick for copying/pasting), and all imports are fr
 
     curl -L tiny.cc/credentialManager.py > CredentialManager.py
 
-and using it as simple as
+and using it is as simple as
 
     python CredentialManager.py
 
