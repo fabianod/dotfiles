@@ -42,9 +42,11 @@ def login(username, password):
         global userToken;
         userGUID = response["@userGUID"];
         userToken = response["@token"];
+        return true;
 
     else:
         print("Error logging in: " + str(response));
+        return false;
 
 
 login("dsouzarc", "");
