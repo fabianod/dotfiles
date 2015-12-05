@@ -13,6 +13,9 @@ mainAPIURL = baseURL + "api/";
 
 loginURL = mainAPIURL + "login";
 uploadFullFile = mainAPIURL + "drive/file/action/upload?uploadType=fullFile";
+uploadChunkedFileInitial = mainAPIURL + "drive/file/action/upload?uploadType=chunkedFile";
+uploadedChunkedFileForceStart = mainAPIURL + "drive/file/action/upload?uploadType=chunkedFile&forceRestart=true&requestId=";
+uploadChunkedFileRequestIdURL = mainAPIURL + "drive/file/action/upload?uploadType=chunkedFile&requestId=";
 
 #4 Megabytes. Is actually 1024, but using 1000 for simplicity reasons
 maxSingleSize = 1000 * 1000 * 4;
@@ -69,10 +72,159 @@ def login(username, password):
     print("Error logging in: " + str(response));
     return False;
 
+def generateHeaders(pathToFile):
 
-def beginChunkUpload(pathToFile):
+    fileSize = os.path.getsize(pathToFile);
+    fileName = os.path.basename(pathToFile);
+    lastModified = int(os.path.getmtime(pathToFile));
 
-    print("beginning");
+    path = os.path.split(pathToFile)[0];
+    cloudPath = "\Drive" + path.replace("/", "\\"); 
+
+    headers = {
+        "Host": server,
+        "Accept": "application/json",
+        "Authtoken": userToken,
+        "Content-type": "text/plain",
+        "ParentFolderPath": base64.b64encode(cloudPath),
+        "FileModifiedtime": str(lastModified),
+        "FileModifiedTime": str(lastModified),
+        "FileSize": str(fileSize),
+        "FileName": base64.b64encode(fileName)
+    }
+
+    return headers, fileName, cloudPath;
+
+def handleConflict(pathToFile):
+
+    request = urllib2.Request(uploadChunkedFileInitial);
+    headers, fileName, cloudPath = generateHeaders(pathToFile);
+    headers["FileEOF"] = "0";
+    del headers["Content-type"];
+    request.headers = headers;
+    request.add_data(open(pathToFile, 'rb').read(4 * 1000 * 1000));
+    try:
+        response = urllib2.urlopen(request);
+        if response.code == 409 or response.code == 200:
+            response = json.loads(response.read());
+            response = response['DM2ContentIndexing_UploadFileResp'];
+            requestID = response['@requestId'];
+            chunkOffset = int(response['@chunkOffset']);
+            print("Found duplicate for " + fileName + "\tChunk: " + str(chunkOffset) + str(response));
+            return requestID, chunkOffset;
+        else:
+            print("ERROR: " + str(response));
+            return 0, 0;
+    except urllib2.HTTPError, err:
+        if err.code == 409 or err.code == 200:
+            response = json.loads(err.read());
+            response = response['DM2ContentIndexing_UploadFileResp'];
+            requestID = response['@requestId'];
+            chunkOffset = int(response['@chunkOffset']);
+            print("Found duplicate for " + fileName + "\tChunk: " + str(chunkOffset) + "\t" + str(response));
+            return requestID, chunkOffset;
+        else:
+            print("ERROR: " + str(err.read()));
+            return 0, 0;
+
+def uploadFileInChunks(pathToFile):
+
+    print("Beginning to upload " + os.path.basename(pathToFile));
+
+    requestID, chunkOffset = handleConflict(pathToFile);
+
+    fileSize = os.path.getsize(pathToFile);
+    fileToUpload = open(pathToFile, 'rb');
+
+    if chunkOffset == -1:
+        print("Successfully finished uploading " + os.path.basename(pathToFile));
+        return;
+
+    if chunkOffset != 0:
+        fileToUpload.seek(chunkOffset);
+
+    while(chunkOffset + (4 * 1000 * 1000) <= fileSize):
+        chunk = fileToUpload.read(4 * 1000 * 1000);
+        url = uploadChunkedFileRequestIdURL + str(requestID);
+        requestIDOld, chunk = beginChunkUpload(pathToFile, chunk, False, url);
+
+        if chunk == -1:
+            print("Successfully finished uploading " + os.path.basename(pathToFile));
+            return;
+        chunkOffset += 4 * 1000 * 1000;
+
+    chunk = fileToUpload.read();
+    url = uploadChunkedFileRequestIdURL + str(requestID);
+    beginChunkUpload(pathToFile, chunk, True, url);
+    print("Successfully finished uploading " + os.path.basename(pathToFile));
+
+def beginChunkUpload(pathToFile, chunk, isLastChunk, url):
+
+    request = urllib2.Request(url);
+    headers, fileName, cloudPath = generateHeaders(pathToFile);
+
+    del headers["Content-type"];
+    del headers["ParentFolderPath"];
+    del headers["FileModifiedtime"];
+    del headers["FileModifiedTime"];
+    del headers["FileSize"];
+    del headers["FileName"];
+
+    if isLastChunk:
+        headers["FileEOF"] = "1";
+    else:
+        headers["FileEOF"] = "0";
+
+    request.headers = headers;
+    request.add_data(chunk);
+
+    try:
+        response = urllib2.urlopen(request);
+    except urllib2.HTTPError, err:
+
+        if err.code == 400 or err.code == 403:
+            print("IN CHUNK BAD REQUEST FOR " + fileName + "\t" + err.read());
+            return 0, 0;
+
+        #This upload has already begun, let's just force restart it
+        elif err.code == 409:
+            response = json.loads(err.read());
+            response = response['DM2ContentIndexing_UploadFileResp'];
+            chunkOffSet = int(response['@chunkOffset']);
+            requestID = response['@requestId'];
+
+            print(response);
+            print("DUPLICATE FOUND: " + requestID + "\t" + str(chunkOffSet) + " RETURNED");
+            return requestID, chunkOffSet;
+        else:
+            print("ERROR: " + err.read());
+            raise;
+
+    if response.code != 200:
+        print("ERROR CHUNK UPLOADING " + pathToFile + " Response code: " + str(response.code));
+        return;
+
+    response = json.loads(response.read());
+    print(response);
+
+    response = response['DM2ContentIndexing_UploadFileResp'];
+
+    if "@errorCode" in response:
+        if int(response['@errorCode']) == 200:
+            chunkOffSet = int(response['@chunkOffset']);
+            requestID = ""; #response['@requestId'];
+            print("Successfully uploaded chunk of " + fileName + "\tpath: " + pathToFile + "\tto cloud location: " + cloudPath + str(response));
+            return requestID, chunkOffSet;
+
+    print("ERROR CHUNK UPLOADING " + pathToFile + " MESSAGE: " + str(response));
+    return 0, 0
+
+
+'''
+uploadChunkedFileInitial = mainAPIURL + "drive/file/action/upload?uploadType=chunkedFile";
+uploadedChunkedFileForceStart = mainAPIURL + "drive/file/action/upload?uploadType=chunkedFile&forceRestart=true&requestId=";
+uploadChunkedFileRequestIdURL = @"drive/file/action/upload?uploadType=chunkedFile&requestId=";
+'''
 
 def uploadFile(pathToFile):
 
@@ -83,28 +235,12 @@ def uploadFile(pathToFile):
     fileSize = os.path.getsize(pathToFile);
 
     if fileSize > maxSingleSize:
-        beginChunkUpload(pathToFile);
+        uploadFileInChunks(pathToFile);
 
     else:
         request = urllib2.Request(uploadFullFile);
 
-        fileName = os.path.basename(pathToFile);
-        lastModified = int(os.path.getmtime(pathToFile));
-
-        path = os.path.split(pathToFile)[0];
-        cloudPath = "\Drive" + path.replace("/", "\\"); 
-
-        headers = {
-            "Host": server,
-            "Accept": "application/json",
-            "Authtoken": userToken,
-            "Content-type": "text/plain",
-            "ParentFolderPath": base64.b64encode(cloudPath),
-            "FileModifiedtime": str(lastModified),
-            "FileModifiedTime": str(lastModified),
-            "FileSize": str(fileSize),
-            "FileName": base64.b64encode(fileName)
-        }
+        headers, fileName, cloudPath = generateHeaders(pathToFile);
 
         request.add_data(open(pathToFile, 'rb').read());
         request.headers = headers;
@@ -122,7 +258,7 @@ def uploadFile(pathToFile):
 
         if "@errorCode" in response:
             if int(response['@errorCode']) == 200:
-                print("Successfully uploaded " + fileName + "\tpath: " + pathToFile + "\tto cloud location: " + cloudPath);
+                print("Successfully uploaded " + fileName + "\tpath: " + pathToFile ); #+ "\tto cloud location: " + cloudPath);
                 return;
 
         print("ERROR UPLOADING " + pathToFile + " MESSAGE: " + str(response));
@@ -134,7 +270,6 @@ currentDirectory = str(os.getcwd()) + "/";
 #KEEP
 
 if login("dsouzarc", ""):
-    print("Successful login");
 
     fileName = "";
 
