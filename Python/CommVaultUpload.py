@@ -1,6 +1,12 @@
 import urllib;
 import urllib2;
+import sys;
+import json;
+
 import config;
+
+userGUID = "";
+userToken = "";
 
 def login(username, password):
 
@@ -25,7 +31,21 @@ def login(username, password):
         print("Response Code 200");
     else:
         print("Error. Respond code: " + str(response.code));
+        sys.exit(0);
 
-    print(response.read());
+    response = json.loads(response.read());
+
+    if 'DM2ContentIndexing_CheckCredentialResp' in response:
+        response = response["DM2ContentIndexing_CheckCredentialResp"];
+
+        global userGUID;
+        global userToken;
+        userGUID = response["@userGUID"];
+        userToken = response["@token"];
+
+    else:
+        print("Error logging in: " + str(response));
+
 
 login("dsouzarc", "");
+
