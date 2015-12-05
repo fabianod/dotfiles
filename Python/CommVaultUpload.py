@@ -300,7 +300,8 @@ def uploadFile(pathToFile):
     fileSize = os.path.getsize(pathToFile);
 
     #File too big, we got to chunk it
-    if fileSize > maxSingleSize and 1 == 2:
+    #if fileSize > maxSingleSize and 1 == 2:
+    if fileSize > 50 * 1000 * 1000:
         uploadFileInChunks(pathToFile);
 
     #We can handle it here
