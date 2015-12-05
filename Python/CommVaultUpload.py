@@ -38,11 +38,10 @@ def login(username, password):
     request.add_header('Content-Type', contentType);
     request.add_header('Accept', accept);
 
+    print("Logging in");
     response = urllib2.urlopen(request, loginXML);
 
-    if response.code == 200:
-        print("Response Code 200");
-    else:
+    if response.code != 200:
         print("Error. Respond code: " + str(response.code));
         sys.exit(0);
 
@@ -64,14 +63,11 @@ def login(username, password):
         currentDirectory = str(os.getcwd()) + "/";
 
         if len(userGUID) != 0 and len(userToken) != 0:
+            print("Successful login");
             return True;
-        else:
-            return False;
 
-    else:
-        print("Error logging in: " + str(response));
-        return False;
-
+    print("Error logging in: " + str(response));
+    return False;
 
 
 def beginChunkUpload(pathToFile):
@@ -96,7 +92,7 @@ def uploadFile(pathToFile):
         lastModified = int(os.path.getmtime(pathToFile));
 
         path = os.path.split(pathToFile)[0];
-        cloudPath = "\Drive" + path.replace("/", "\\"); # "\Drive\Ryan\\";
+        cloudPath = "\Drive" + path.replace("/", "\\"); 
 
         headers = {
             "Host": server,
