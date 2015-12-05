@@ -93,41 +93,47 @@ def uploadFile(pathToFile):
         request = urllib2.Request(uploadFullFile);
 
         fileName = os.path.basename(pathToFile);
-        path = os.path.split(pathToFile)[0];
         lastModified = int(os.path.getmtime(pathToFile));
 
-        cloudPath = "\Drive\Ryan\\";
+        path = os.path.split(pathToFile)[0];
+        cloudPath = "\Drive" + path.replace("/", "\\"); # "\Drive\Ryan\\";
 
         headers = {
             "Host": server,
-            "Accept": "application/xml",
+            "Accept": "application/json",
             "Authtoken": userToken,
             "Content-type": "text/plain",
-            "ParentFolderPath": base64.b64encode(':'.join(cloudPath)),
+            "ParentFolderPath": base64.b64encode(cloudPath),
             "FileModifiedtime": str(lastModified),
             "FileModifiedTime": str(lastModified),
             "FileSize": str(fileSize),
-            "FileName": base64.b64encode(':'.join(fileName)),
+            "FileName": base64.b64encode(fileName)
         }
 
-        print(headers);
-        print("\n\n");
-
-        request.add_data(open(pathToFile).read())
+        request.add_data(open(pathToFile, 'rb').read());
         request.headers = headers;
-        #print
-        print 'OUTGOING DATA:'
-        print request.get_data()
 
-        print
-        print 'SERVER RESPONSE:'
-        print urllib2.urlopen(request).read()
+        response = urllib2.urlopen(request);
 
-    
+        if response.code != 200:
+            print("ERROR UPLOADING " + pathToFile + " Response code: " + str(response.code));
+            return;
+
+        response = json.loads(response.read());
+
+        if 'DM2ContentIndexing_UploadFileResp' in response:
+            response = response['DM2ContentIndexing_UploadFileResp'];
+
+        if "@errorCode" in response:
+            if int(response['@errorCode']) == 200:
+                print("Successfully uploaded " + fileName + "\tpath: " + pathToFile + "\tto cloud location: " + cloudPath);
+                return;
+
+        print("ERROR UPLOADING " + pathToFile + " MESSAGE: " + str(response));
+
+
 #DELETE HERE
-
 currentDirectory = str(os.getcwd()) + "/";
-
 
 #KEEP
 
