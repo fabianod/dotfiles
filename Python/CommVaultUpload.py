@@ -12,8 +12,6 @@ def login(username, password):
     loginXML = loginXML.replace("{0}", username);
     loginXML = loginXML.replace("{1}", password);
 
-    print(loginXML);
-
     contentType = "application/xml; charset=utf-8";
     accept = "application/json";
 
@@ -22,6 +20,11 @@ def login(username, password):
     request.add_header('Accept', accept);
 
     response = urllib2.urlopen(request, loginXML);
+
+    if response.code == 200:
+        print("Response Code 200");
+    else:
+        print("Error. Respond code: " + str(response.code));
 
     print(response.read());
 
