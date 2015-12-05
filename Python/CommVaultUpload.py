@@ -366,13 +366,13 @@ if login("dsouzarc", password):
             uploadFile(fileLocation);
 
     #Upload all files in this directory and its subdirectories --> user entered '/' or '.'
-    if fileName != None and (fileName == "/" or fileName == "."):
-        for root, subFolders, files in os.walk(os.getcwd()):
-            for folder in subFolders:
-                for file in files:
-                    if file != "CommVaultUpload.py":
-                        filePath = os.path.join(root, file);
-                        uploadFile(filePath);
+    if fileName == "/" or fileName == ".":
+        print("GOOD TO GO");
+        for root, subFolders, files in os.walk(os.getcwd() + "/"):
+            for name in files:
+                if name != "CommVaultUpload.py" and name != ".DS_Store":
+                    filePath = os.path.join(root, name);
+                    uploadFile(filePath);
 
     #Just one file entered
     elif fileName != None:
