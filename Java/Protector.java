@@ -1,4 +1,10 @@
-// CIPHER / GENERATORS
+// FILE INPUT AND OUTPUT
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.File;
+import java.io.FileWriter;
+
+// CIPHER AND GENERATORS
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.KeyGenerator;
@@ -10,12 +16,6 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEParameterSpec;
 
-import java.util.Scanner;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.File;
-import java.io.FileWriter;
 
 public class Protector {
 
