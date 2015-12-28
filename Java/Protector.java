@@ -125,40 +125,51 @@ public class Protector {
         writeToTextFile(fileName, encrypted);
     }
 
+    /** Checks the validity of a decrypted string */
     public static boolean isValid(final String text) {
+
+        //If it's shorter than our validation token
         if(text.length() < VALIDATION.length()) {
             return false;
         }
 
+        //The first X characters should equal our validation 
         final String firstFew = text.substring(0, VALIDATION.length());
         return firstFew.equals(VALIDATION);
     }
 
+    /** Decrypts a textfile using the decrypt cipher. Decryption can fail */
     public boolean decryptTextFile(final String fileName) {
+
+        //Encrypted text from file
         final String encrypted = getTextFromFile(fileName);
+
+        //Decrypt all of the encrypted text
         String decrypted = this.decrypt(encrypted);
 
+        //If it's not a valid decryption cipher - incorrect password
         if(!isValid(decrypted)) {
             System.out.println("Incorrect decryption for: " + fileName);
             return false;
         }
 
+        //If it is valid, remove the validator, overwrite the textfile with unencrypted
         decrypted = decrypted.substring(VALIDATION.length() + 1);
         writeToTextFile(fileName, decrypted);
         return true;
     }
 
+    /** Returns the text in a file */
     public static String getTextFromFile(final String fileName) {
 
         String result = "";
         try {
-
             final BufferedReader reader = new BufferedReader(new FileReader(fileName));
 
             String line = "";
 
             while((line = reader.readLine()) != null) {
-                result += line + "\n";
+                result += line + "\n"; //For formatting
             }
             
             reader.close();
@@ -170,6 +181,7 @@ public class Protector {
         return result;
     }
 
+    /** Overwrites the contents of a textfile with the text paramater */
     public static void writeToTextFile(final String fileName, final String text) {
 
         try {
@@ -182,6 +194,7 @@ public class Protector {
         }
     }
 
+    /** Prompts the user to encrypt or decrypt */
     public static boolean userWantsToEncrypt() {
         System.out.println("Enter E to Encrypt or D to Decrypt: ");
         final String input = System.console().readLine();
