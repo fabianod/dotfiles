@@ -16,22 +16,38 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEParameterSpec;
 
+/**
+ * Written by Ryan D'souza
+ *
+ * Encrypts and decrypts textfiles/strings using AES 128 byte + a salt
+ * Uses no external libraries - lightweight and quick to use
+ *
+ * Run Instructions: 
+ *  1. javac Protector.java
+ *  2. java Protector
+*/
 
 public class Protector {
 
+    //Constants used in algorithm
     private static final String ALGO = "AES";
     private static final String KEY_INSTANCE = "PBEWithMD5AndDES";
     private static final String ENCODING = "UTF8";
     private static final String VALIDATION = "QFyeiIhC7Wmk2F6";
 
+    //Responsible for encrypting/decrypting
     private Cipher encryptCipher;
     private Cipher decryptCipher;
-
+    
+    /**
+     * Constructor - password as plain text
+    */
     public Protector(final String password) {
 
         final byte[] salt = generateSalt();
         final int iterationCount = 19;
 
+        //Creates the encrypter and decrypter cipher with AES algorithm + salt
         try {
             final KeySpec keySpec = new PBEKeySpec(password.toCharArray(), salt, iterationCount);
             final SecretKey key = SecretKeyFactory.getInstance(KEY_INSTANCE).generateSecret(keySpec);
@@ -49,6 +65,7 @@ public class Protector {
         }
     }
 
+    /** Returns a random salt */
     private static byte[] generateSalt() {
         final byte[] salt = {
             (byte)0xA9, (byte)0x9B, (byte)0xC8, (byte)0x32,
@@ -57,6 +74,7 @@ public class Protector {
         return salt;
     }
 
+    /** Given a string, decrypts it using the decryption cipher */
     public String decrypt(final String encrypted) {
         try {
 
@@ -75,6 +93,7 @@ public class Protector {
         }
     }
 
+    /** Given a string, encrypts it using the encrypton cipher */
     public String encrypt(final String unencrypted) {
         try {
 
@@ -93,9 +112,16 @@ public class Protector {
         }
     }
 
+    /** Encrypts a text file */
     public void encryptTextFile(final String fileName) {
+
+        //Get the contents of the textfile, and append a validation token to it
         final String unencrypted = VALIDATION + getTextFromFile(fileName);
+
+        //Encrypt the validation and contents of textfile
         final String encrypted = this.encrypt(unencrypted);
+
+        //Overwrite that textfile with the encrypted contents
         writeToTextFile(fileName, encrypted);
     }
 
