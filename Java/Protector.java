@@ -154,7 +154,7 @@ public class Protector {
         }
 
         //If it is valid, remove the validator, overwrite the textfile with unencrypted
-        decrypted = decrypted.substring(VALIDATION.length() + 1);
+        decrypted = decrypted.substring(VALIDATION.length());
         writeToTextFile(fileName, decrypted);
         return true;
     }
@@ -212,14 +212,14 @@ public class Protector {
         System.out.println("Enter password: ");
         final String firstPass = new String(System.console().readPassword());
 
-        System.out.println("Confirm: ");
+        /*System.out.println("Confirm: ");
         final String secondPass = new String(System.console().readPassword());
 
         //Passwords don't match
         if(!firstPass.equals(secondPass)) {
             System.out.println("Not equal passwords. Re-enter");
             return getPasswordFromUser();
-        }
+        } */
 
         return firstPass;
     }
