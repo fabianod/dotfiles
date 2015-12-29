@@ -201,11 +201,13 @@ public class Protector {
         return input.equalsIgnoreCase("e") || input.equalsIgnoreCase("encrypt");
     }
 
+    /** Prompts the user for a file name */
     public static String getFileNameFromUser() {
         System.out.println("Enter file name: ");
         return System.console().readLine();
     }
 
+    /** Prompts the user for a password */
     public static String getPasswordFromUser() {
         System.out.println("Enter password: ");
         final String firstPass = System.console().readPassword();
@@ -213,6 +215,7 @@ public class Protector {
         System.out.println("Confirm: ");
         final String secondPass = System.console().readPassword();
 
+        //Passwords don't match
         if(!firstPass.equals(secondPass)) {
             System.out.println("Not equal passwords. Re-enter");
             return getPasswordFromUser();
@@ -221,9 +224,16 @@ public class Protector {
         return firstPass;
     }
 
+    /** For testing */
     public static void main(String[] ryan) {
+
+        //Object created with inputted password
         Protector protector = new Protector(getPasswordFromUser());
+
+        //If the user didn't put a file name as a parameter, prompt for it
         final String fileName = ryan.length > 0 ? ryan[0] : getFileNameFromUser();
+
+        //If the user didn't specify encryption/decryption, prompt for it
         final boolean toEncrypt = ryan.length > 1 ? ryan[1].equalsIgnoreCase("e") || ryan[1].equalsIgnoreCase("encrypt") : userWantsToEncrypt();
 
         if(toEncrypt) {
