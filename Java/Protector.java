@@ -210,10 +210,10 @@ public class Protector {
     /** Prompts the user for a password */
     public static String getPasswordFromUser() {
         System.out.println("Enter password: ");
-        final String firstPass = System.console().readPassword();
+        final String firstPass = new String(System.console().readPassword());
 
         System.out.println("Confirm: ");
-        final String secondPass = System.console().readPassword();
+        final String secondPass = new String(System.console().readPassword());
 
         //Passwords don't match
         if(!firstPass.equals(secondPass)) {
