@@ -42,10 +42,10 @@ if os.path.exists(saveToPath):
 os.makedirs(saveToPath);
 
 #Creates a copy of the original image, resizes to those dimensions, saves it to disk
-resizeImage(1024, 1024, "1024");
-resizeImage(512, 512, "512");
-resizeImage(256, 256, "256");
-resizeImage(128, 128, "128");
-resizeImage(64, 64, "64");
-resizeImage(32, 32, "32");
-resizeImage(16, 16, "16");
+resizeImage(1024, 1024, "App-Icon-1024");
+resizeImage(512, 512, "App-Icon-512");
+resizeImage(256, 256, "App-Icon-256");
+resizeImage(128, 128, "App-Icon-128");
+resizeImage(64, 64, "App-Icon-64");
+resizeImage(32, 32, "App-Icon-32");
+resizeImage(16, 16, "App-Icon-16");
