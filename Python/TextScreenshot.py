@@ -54,9 +54,13 @@ fileName = "From " + domainName + " on " + todaysDate + ".png"
 filePath = defaultSaveLocation + fileName
 
 imageRequest = requests.get(screenshotLayerURL, params=parameters, stream=True)
+
+if imageRequest.status_code != 200:
+    print("ERROR CONVERTING TO IMAGE: " + str(imageRequest.text))
+    exit()
+
 with open(filePath, 'wb') as imageFile:
-    for chunk in imageRequest.iter_content(2000):
-        imageFile.write(chunk)
+    imageFile.write(imageRequest.content)
 
 print("Saved image to: " + filePath)
 

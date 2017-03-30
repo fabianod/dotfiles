@@ -53,9 +53,12 @@ filePath = defaultSaveLocation + fileName
 
 pdfRequest = requests.get(pdfLayerURL, params=parameters, stream=True)
 
+if pdfRequest.status_code != 200:
+    print("ERROR CONVERTING TO PDF: " + str(pdfRequest.text))
+    exit()
+
 with open(filePath, 'wb') as pdfFile:
-    for chunk in pdfRequest.iter_content(2000):
-        pdfFile.write(chunk)
+    pdfFile.write(pdfRequest.content)
 
 print("Saved PDF to: " + filePath)
 
