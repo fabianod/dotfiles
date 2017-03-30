@@ -1,3 +1,18 @@
+" Enable filetype plugins
+filetype plugin on
+filetype indent on
+
+" Set to auto read when a file is changed from the outside
+set autoread
+
+" With a map leader it's possible to do extra key combinations
+" like <leader>w saves the current file
+let mapleader = ","
+let g:mapleader = ","
+
+" Fast saving
+nmap <leader>w :w!<cr>
+
 " Keyboard controls for switching between vim tabs
 nnoremap <C-J> <C-W><C-W>
 nnoremap <C-K> <C-W><C-K>
@@ -7,8 +22,11 @@ nnoremap <C-H> <C-W><C-H>
 " Suffixes to put to the end of the list when completing file names
 " set suffixes=.bak,~,.o,.h,.info,.swp,.class
 
+" Turn on the WiLd menu
+set wildmenu
+
 " Or, completely ignore the following file extensions
-set wildignore=*.class,*.rbc
+set wildignore=*.class,*.rbc,*.o,*~,*.pyc*/.git/*,*/.hg/*,*/.svn/*,*/.DS_Store
 
 :imap jk <Esc> 
 
@@ -19,6 +37,9 @@ set history=7000
 
 " Set 7 lines to the cursor - when moving vertically using j/k
 set so=7
+
+" A buffer becomes hidden when it is abandoned
+set hid
 
 " Set line numbers
 set number
@@ -98,3 +119,40 @@ set tw=500
 set ai "Auto indent
 set si "Smart indent
 set wrap "Wrap lines
+
+set encoding=utf-8
+
+
+au BufNewFile,BufRead *.py
+    \ set tabstop=4 |
+    \ set softtabstop=4 |
+    \ set shiftwidth=4 |
+    \ set expandtab |
+    \ set autoindent |
+    \ set fileformat=unix
+
+
+au BufNewFile,BufRead *.js, *.html, *.css
+    \ set tabstop=2 |
+    \ set softtabstop=2 |
+    \ set shiftwidth=2
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" => Files, backups and undo
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Turn backup off, since most stuff is in SVN, git et.c anyway...
+set nobackup
+set nowb
+set noswapfile
+
+
+"python with virtualenv support
+py << EOF
+import os
+import sys
+if 'VIRTUAL_ENV' in os.environ:
+  project_base_dir = os.environ['VIRTUAL_ENV']
+  activate_this = os.path.join(project_base_dir, 'bin/activate_this.py')
+  execfile(activate_this, dict(__file__=activate_this))
+EOF

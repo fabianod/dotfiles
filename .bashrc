@@ -5,6 +5,19 @@
 
 export PATH=/path/to/dir:$PATH
 
+#Goes up N number of directories ex. up 3
+alias up='upup'
+upup(){ 
+    DEEP=$1; 
+    [ -z "${DEEP}" ] && { DEEP=1; }; 
+    for i in $(seq 1 ${DEEP}); do 
+        cd ../; 
+    done; 
+}
+
+#Gets the current IP address
+alias myip='wget http://ipinfo.io/ip -qO -'
+
 #Copy current directory to clipboard
 alias cpwd='pwd | xclip -selection clipboard'
 
@@ -75,6 +88,9 @@ alias topython="toprogramming; cd Python"
 alias todownloads="cd; cd Downloads"
 alias tobmf="toprogramming; cd Bring\ Me\ Food"
 alias tocharles="toprogramming; cd Charles\ Proxying"
+
+#alias torutgers="echo 'sshing to rcd94@builder.cs.rutgers.edu'; ssh rcd94@builder.cs.rutgers.edu"
+alias torutgers="echo 'sshing to rcd94@builder.cs.rutgers.edu'; sshpass -f <(printf '%s\n' RY1996CSDS\!) ssh rcd94@builder.cs.rutgers.edu"
 
 #Downloads any website's content
 downloadsite() {
@@ -174,3 +190,5 @@ fi
 
 #Causes the changes to .bashrc to come true
 alias bashme="cp ~/.bashrc ~/.bash_profile && source ~/.bashrc && echo Successfully bashed"
+
+export NODE_PATH="/usr/local/lib/node_modules"

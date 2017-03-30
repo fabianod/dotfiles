@@ -10,9 +10,9 @@ from docx import Document;
 ####################################################################
 
 #UPDATE THESE
-fileName = "Dubliners.pdf";
-noteSheetName = "Dubliners Notes.md";
-noteSheetWordName = "Dubliners Notes.docx";
+fileName = "To The Light House.pdf"
+noteSheetName = "To The Light House.md"
+noteSheetWordName = "To The Light House.docx"
 startPage = 4; #The actual first page of the book
 
 #Optional Update
@@ -68,6 +68,7 @@ for i in range(startPage, pdf.getNumPages()):
         #Gets each line on the page
         page = pdf.getPage(i);
         text = page.extractText();
+        print(text)
         text = text.replace("\n", " ");
         lines = text.split(".");
 
