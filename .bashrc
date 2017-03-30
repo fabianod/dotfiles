@@ -65,6 +65,12 @@ alias TextPeople="python $dotfiles/Python/TextPeople.py"
 alias EmailLink="python $dotfiles/Python/EmailLink.py"
 alias EmailMe="python $dotfiles/Python/EmailMe.py"
 
+#Runs a python script to generate a PDF view of a link and email it to myself
+alias TextPDF="python $dotfiles/Python/TextPDF.py"
+
+#Runs a python script to generate a screenshot view of a link and email it to myself
+alias TextScreenshot="python $dotfiles/Python/TextScreenshot.py"
+
 #Runs a bash script to shorten a link, print the shortened URL, and copy it to clipboard
 alias ShortenLink="$dotfiles/Bash/./ShortenURL.sh"
 
