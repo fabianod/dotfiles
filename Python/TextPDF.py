@@ -73,4 +73,3 @@ if response.status_code == 200:
     print("Successfully sent to self")
 else:
     response.raise_for_status()
-

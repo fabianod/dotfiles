@@ -25,7 +25,7 @@ mailGunURL = "https://api.mailgun.net/v3/sandboxee071b43671c4663b8790099f51085b7
 mailGunAuth = ('api', CredentialManager.get_value("MailGunAPIKey"))
 
 #Screenshot Layer Image Information
-defaultSaveLocation = "/Users/Ryan/Dropbox/Screenshots"
+defaultSaveLocation = "/Users/Ryan/Dropbox/Screenshots/"
 
 screenshotLayerURL = "http://api.screenshotlayer.com/api/capture"
 accessKey = CredentialManager.get_value("ScreenshotLayerAPI")
@@ -50,14 +50,15 @@ parameters = {
 #Regex magic to get the domain from the link
 domainName = linkToScreenshot.split("//")[-1].split("/")[0]
 todaysDate = datetime.today().strftime('%d-%b-%Y %H:%M:%S')
-fileName = defaultSaveLocation + "/From " + domainName + " on " + todaysDate + ".png"
+fileName = "From " + domainName + " on " + todaysDate + ".png"
+filePath = defaultSaveLocation + fileName
 
 imageRequest = requests.get(screenshotLayerURL, params=parameters, stream=True)
-imageRequest.raw.decode_content = True # handle spurious Content-Encoding
-image = Image.open(imageRequest.raw)
+with open(filePath, 'wb') as imageFile:
+    for chunk in imageRequest.iter_content(2000):
+        imageFile.write(chunk)
 
-image.save(fileName, "PNG")
-print("Saved image to: " + fileName)
+print("Saved image to: " + filePath)
 
 data = {
     'from': 'dsouzarc+mailgun@gmail.com',
