@@ -13,10 +13,12 @@ Quickly and easily manage credentials like API tokens
 ##### [TextPDF](https://github.com/dsouzarc/dotfiles/blob/master/Python/TextPDF.py)
 Given a link, calls an API to get a PDF view of the link, and texts/emails that PDF to myself.
 Great for saving something to read later and for avoiding pay-walls (i.e.: 10 free articles a month)
+![PDF Example](https://github.com/dsouzarc/dotfiles/blob/master/examples/From%20github.com%20on%2030-Mar-2017%2018:40:13.pdf)
 
 
 ##### [TextScreenshot](https://github.com/dsouzarc/dotfiles/blob/master/Python/TextScreenshot.py)
 Similar to TextPDF, but mainly for taking a screenshot of something and sending it to myself
+![Screenshot example](https://github.com/dsouzarc/dotfiles/blob/master/examples/From%20github.com%20on%2030-Mar-2017%2018:47:40.png?raw=true)
 
 
 ##### [TextPhone](https://github.com/dsouzarc/dotfiles/blob/master/Python/TextPhone.py)
